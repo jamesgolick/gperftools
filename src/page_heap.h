@@ -42,9 +42,9 @@
 #include <gperftools/malloc_extension.h>
 #include "base/basictypes.h"
 #include "common.h"
+#include "llrb.h"
 #include "packed-cache-inl.h"
 #include "pagemap.h"
-#include "skiplist.h"
 #include "span.h"
 
 // We need to dllexport PageHeap just for the unittest.  MSVC complains
@@ -222,9 +222,9 @@ class PERFTOOLS_DLL_DECL PageHeap {
   static const int kDefaultReleaseDelay = 1 << 18;
 
   // At what large_lists_size_ does it become worthwhile to maintain
-  // the skiplist for satisfying large allocations?
+  // the llrb for satisfying large allocations?
   // TODO: Make tunable with ENV vars?
-  static const int kLargeSkiplistThreshold = 250;
+  static const int kLargeLLRBThreshold = 250;
 
   // Pick the appropriate map and cache types based on pointer size
   typedef MapSelector<kAddressBits>::Type PageMap;
@@ -249,12 +249,12 @@ class PERFTOOLS_DLL_DECL PageHeap {
   // Combined number of elements in large normal and returned lists
   size_t large_lists_size_;
 
-  // Have we switched over to using the large skiplist?
-  bool using_large_skiplist_;
+  // Have we switched over to using the large llrb?
+  bool using_large_llrb_;
 
   // Skip list of large spans for efficiently finding a best-fit
   // span for large allocs
-  Skiplist large_skiplist_;
+  LLRB large_llrb_;
 
   // Statistics on system, free, and unmapped bytes
   Stats stats_;
@@ -321,9 +321,9 @@ class PERFTOOLS_DLL_DECL PageHeap {
   int release_index_;
 
   bool aggressive_decommit_;
-  // Initially populate the large skiplist. Used every time
-  // we cross the kLargeSkiplistThreshold.
-  void InitializeLargeSkiplist();
+  // Initially populate the large llrb. Used every time
+  // we cross the kLargeLLRBThreshold.
+  void InitializeLargeLLRB();
 };
 
 }  // namespace tcmalloc
