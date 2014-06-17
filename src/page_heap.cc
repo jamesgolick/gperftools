@@ -212,13 +212,10 @@ Span* PageHeap::AllocLarge(Length n) {
 
   if (EnsureLimit(n, true)) {
     // best could have been destroyed by coalescing.
-    // bestNormal is not a best-fit, and it could be destroyed as well.
     // We retry, the limit is already ensured:
     return AllocLarge(n);
   }
 
-  // If bestNormal existed, EnsureLimit would succeeded:
-  ASSERT(bestNormal == NULL);
   // We are not allowed to take best from returned list.
   return NULL;
 }
