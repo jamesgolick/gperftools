@@ -64,12 +64,12 @@ namespace tcmalloc {
 PageHeap::PageHeap()
     : pagemap_(MetaDataAlloc),
       pagemap_cache_(0),
-      scavenge_counter_(0),
       large_lists_size_(0),
       // Start scavenging at kMaxPages list
+      using_large_llrb_(false),
+      scavenge_counter_(0),
       release_index_(kMaxPages),
-      aggressive_decommit_(false),
-      using_large_llrb_(false) {
+      aggressive_decommit_(false) {
   COMPILE_ASSERT(kNumClasses <= (1 << PageMapCache::kValuebits), valuebits);
   DLL_Init(&large_.normal);
   DLL_Init(&large_.returned);
