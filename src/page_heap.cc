@@ -66,7 +66,6 @@ PageHeap::PageHeap()
       pagemap_cache_(0),
       large_lists_size_(0),
       // Start scavenging at kMaxPages list
-      using_large_llrb_(false),
       scavenge_counter_(0),
       release_index_(kMaxPages),
       aggressive_decommit_(false) {
@@ -77,6 +76,7 @@ PageHeap::PageHeap()
     DLL_Init(&free_[i].normal);
     DLL_Init(&free_[i].returned);
   }
+  large_llrb_.Init();
 }
 
 Span* PageHeap::SearchFreeAndLargeLists(Length n) {
@@ -168,37 +168,7 @@ Span* PageHeap::AllocLarge(Length n) {
   // The following loops implements address-ordered best-fit.
   Span *best = NULL;
 
-  if (!using_large_llrb_) {
-    // Search through normal list
-    for (Span* span = large_.normal.next;
-	 span != &large_.normal;
-	 span = span->next) {
-      if (span->length >= n) {
-	if ((best == NULL)
-	    || (span->length < best->length)
-	    || ((span->length == best->length) && (span->start < best->start))) {
-	  best = span;
-	  ASSERT(best->location == Span::ON_NORMAL_FREELIST);
-	}
-      }
-    }
-
-    // Search through released list in case it has a better fit
-    for (Span* span = large_.returned.next;
-	 span != &large_.returned;
-	 span = span->next) {
-      if (span->length >= n) {
-	if ((best == NULL)
-	    || (span->length < best->length)
-	    || ((span->length == best->length) && (span->start < best->start))) {
-	  best = span;
-	  ASSERT(best->location == Span::ON_RETURNED_FREELIST);
-	}
-      }
-    }
-  } else {
-    best = large_llrb_.GetBestFit(n);
-  }
+  best = large_llrb_.GetBestFit(n);
 
   if (best == NULL || best->location == Span::ON_NORMAL_FREELIST) {
     return best == NULL ? NULL : Carve(best, n);
@@ -410,13 +380,7 @@ void PageHeap::PrependToFreeList(Span* span) {
   } else {
     list = &large_;
     large_lists_size_++;
-    if (large_lists_size_ == kLargeLLRBThreshold && !using_large_llrb_) {
-      InitializeLargeLLRB();
-    }
-
-    if (using_large_llrb_) {
-      large_llrb_.Insert(span);
-    }
+    large_llrb_.Insert(span);
   }
   
   if (span->location == Span::ON_NORMAL_FREELIST) {
@@ -437,10 +401,7 @@ void PageHeap::RemoveFromFreeList(Span* span) {
   }
 
   if (span->length >= kMaxPages) {
-    if (using_large_llrb_) {
-      large_llrb_.Remove(span);
-    }
-
+    large_llrb_.Remove(span);
     large_lists_size_--;
   }
 
@@ -695,23 +656,6 @@ bool PageHeap::CheckList(Span* list, Length min_pages, Length max_pages,
     CHECK_CONDITION(GetDescriptor(s->start+s->length-1) == s);
   }
   return true;
-}
-
-void PageHeap::InitializeLargeLLRB() {
-  using_large_llrb_ = true;
-  large_llrb_.Init();
-
-  for (Span* span = large_.normal.next;
-      span != &large_.normal;
-      span = span->next) {
-    large_llrb_.Insert(span);
-  }
-
-  for (Span* span = large_.returned.next;
-      span != &large_.returned;
-      span = span->next) {
-    large_llrb_.Insert(span);
-  }
 }
 
 }  // namespace tcmalloc

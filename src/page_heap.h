@@ -249,9 +249,6 @@ class PERFTOOLS_DLL_DECL PageHeap {
   // Combined number of elements in large normal and returned lists
   size_t large_lists_size_;
 
-  // Have we switched over to using the large llrb?
-  bool using_large_llrb_;
-
   // Skip list of large spans for efficiently finding a best-fit
   // span for large allocs
   LLRB large_llrb_;
