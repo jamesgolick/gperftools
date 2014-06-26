@@ -69,7 +69,7 @@ inline int llrb_cmp(llrb_node_t* x, llrb_node_t* y) {
 
 typedef rb_tree(llrb_node_t) llrb_t;
 
-rb_gen(static __attribute__((unused)), llrb_, llrb_t, llrb_node_t, llrb_link, llrb_cmp);
+rb_gen(static ATTRIBUTE_UNUSED, llrb_, llrb_t, llrb_node_t, llrb_link, llrb_cmp);
 
 class LLRB {
   public:
