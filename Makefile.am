@@ -26,7 +26,7 @@ NO_BUILTIN_CXXFLAGS =
 # changes one day.  gcc ignores functions it doesn't understand.
 if GCC
 AM_CXXFLAGS += -Wall -Wwrite-strings -Woverloaded-virtual \
-               -Wno-sign-compare \
+               -Wno-sign-compare -Werror \
                -fno-builtin-malloc -fno-builtin-free -fno-builtin-realloc \
                -fno-builtin-calloc -fno-builtin-cfree \
                -fno-builtin-memalign -fno-builtin-posix_memalign \
