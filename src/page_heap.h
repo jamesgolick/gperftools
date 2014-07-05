@@ -42,10 +42,10 @@
 #include <gperftools/malloc_extension.h>
 #include "base/basictypes.h"
 #include "common.h"
-#include "llrb.h"
 #include "packed-cache-inl.h"
 #include "pagemap.h"
 #include "span.h"
+#include "tlsf.h"
 
 // We need to dllexport PageHeap just for the unittest.  MSVC complains
 // that we don't dllexport the PageHeap members, but we don't need to
@@ -249,9 +249,8 @@ class PERFTOOLS_DLL_DECL PageHeap {
   // Combined number of elements in large normal and returned lists
   size_t large_lists_size_;
 
-  // Skip list of large spans for efficiently finding a best-fit
-  // span for large allocs
-  LLRB large_llrb_;
+  // TLSF Data Structure for large allocs
+  TLSF large_tlsf_;
 
   // Statistics on system, free, and unmapped bytes
   Stats stats_;

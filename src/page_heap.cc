@@ -76,7 +76,7 @@ PageHeap::PageHeap()
     DLL_Init(&free_[i].normal);
     DLL_Init(&free_[i].returned);
   }
-  large_llrb_.Init();
+  large_tlsf_.Init(Static::tlsf_node_allocator());
 }
 
 Span* PageHeap::SearchFreeAndLargeLists(Length n) {
@@ -168,7 +168,7 @@ Span* PageHeap::AllocLarge(Length n) {
   // The following loops implements address-ordered best-fit.
   Span *best = NULL;
 
-  best = large_llrb_.GetBestFit(n);
+  best = large_tlsf_.GetBestFit(n);
 
   if (best == NULL || best->location == Span::ON_NORMAL_FREELIST) {
     return best == NULL ? NULL : Carve(best, n);
@@ -380,7 +380,7 @@ void PageHeap::PrependToFreeList(Span* span) {
   } else {
     list = &large_;
     large_lists_size_++;
-    large_llrb_.Insert(span);
+    large_tlsf_.Insert(span);
   }
   
   if (span->location == Span::ON_NORMAL_FREELIST) {
@@ -401,7 +401,7 @@ void PageHeap::RemoveFromFreeList(Span* span) {
   }
 
   if (span->length >= kMaxPages) {
-    large_llrb_.Remove(span);
+    large_tlsf_.Remove(span);
     large_lists_size_--;
   }
 

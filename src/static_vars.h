@@ -42,7 +42,7 @@
 #include "common.h"
 #include "page_heap.h"
 #include "page_heap_allocator.h"
-#include "llrb.h"
+#include "tlsf.h"
 #include "span.h"
 #include "stack_trace_table.h"
 
@@ -71,8 +71,8 @@ class Static {
 
   static PageHeapAllocator<Span>* span_allocator() { return &span_allocator_; }
 
-  static PageHeapAllocator<LLRBNode>* llrb_node_allocator() {
-    return &llrb_node_allocator_;
+  static PageHeapAllocator<tlsf_list_node_t>* tlsf_node_allocator() {
+    return &tlsf_node_allocator_;
   }
 
   static PageHeapAllocator<StackTrace>* stacktrace_allocator() {
@@ -102,7 +102,7 @@ class Static {
   static SizeMap sizemap_;
   static CentralFreeListPadded central_cache_[kNumClasses];
   static PageHeapAllocator<Span> span_allocator_;
-  static PageHeapAllocator<LLRBNode> llrb_node_allocator_;
+  static PageHeapAllocator<tlsf_list_node_t> tlsf_node_allocator_;
   static PageHeapAllocator<StackTrace> stacktrace_allocator_;
   static Span sampled_objects_;
   static PageHeapAllocator<StackTraceTable::Bucket> bucket_allocator_;

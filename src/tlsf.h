@@ -30,8 +30,8 @@
 // ---
 // Author: James Golick <jamesgolick@gmail.com>
 
-#ifndef TCMALLOC_LLRB_H_
-#define TCMALLOC_LLRB_H_
+#ifndef TCMALLOC_TLSF_H_
+#define TCMALLOC_TLSF_H_
 
 #include <config.h>
 #include "common.h"
@@ -40,53 +40,45 @@
 #include <assert.h>
 #include "rb.h"
 #include <stdio.h>
+#include "page_heap_allocator.h"
 
 namespace tcmalloc {
 
-typedef struct LLRBNode llrb_node_t;
-struct LLRBNode {
-  rb_node(llrb_node_t) llrb_link;
-  Span* value;
-};
+typedef struct tlsf_list_node {
+  Span *value;
+  tlsf_list_node *next;
+} tlsf_list_node_t;
 
-// Span compare for llrb
-inline int llrb_cmp(llrb_node_t* x, llrb_node_t* y) {
-  Span *a;
-  Span *b;
-
-  a = x->value;
-  b = y->value;
-
-  if (a == NULL ||
-      (a->length < b->length || (a->length == b->length && a->start < b->start))) {
-    return -1;
-  } else if (a->length > b->length || (a->length == b->length && a->start > b->start)) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-typedef rb_tree(llrb_node_t) llrb_t;
-
-rb_gen(static ATTRIBUTE_UNUSED, llrb_, llrb_t, llrb_node_t, llrb_link, llrb_cmp);
-
-class LLRB {
+class TLSF {
   public:
-   void Init();
+   void Init(PageHeapAllocator<tlsf_list_node_t>* list_node_allocator);
    void Insert(Span* span);
    void Remove(Span* span);
    Span* GetBestFit(size_t pages);
    bool Includes(Span* span);
 
   private:
-   llrb_t tree_;
+   static const size_t kFlLength = (sizeof(long) * 8) - (kPageShift - 1);
+   static const size_t kSlLength = 5;
 
-   LLRBNode* NewNode(Span* value);
-   void DeleteNode(LLRBNode* node);
-   void Remove(LLRBNode* node);
+   PageHeapAllocator<tlsf_list_node_t>* _list_node_allocator;
+
+   size_t _fl_bitmap;
+   size_t _sl_bitmaps[kFlLength];
+
+   tlsf_list_node_t* _blocks[kFlLength][kSlLength];
+
+   tlsf_list_node_t* NewNode(Span* value);
+   void DeleteNode(tlsf_list_node_t* node);
+
+   Span* try_fli(size_t fli, size_t size);
+
+   void clean_bitmaps(size_t fli, size_t sli);
+   size_t log2(size_t size);
+   size_t flindex(size_t size);
+   size_t slindex(size_t fli, size_t size);
 };
 
 }  // namespace tcmalloc
 
-#endif  // TCMALLOC_LLRB_H_
+#endif  // TCMALLOC_TLSF_H_

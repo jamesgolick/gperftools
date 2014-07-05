@@ -437,7 +437,7 @@ S_TCMALLOC_MINIMAL_INCLUDES = src/common.h \
                               src/libc_override_glibc.h \
                               src/libc_override_osx.h \
                               src/libc_override_redefine.h \
-                              src/llrb.h \
+                              src/tlsf.h \
                               src/page_heap.h \
                               src/page_heap_allocator.h \
                               src/rb.h \
@@ -470,7 +470,7 @@ libtcmalloc_minimal_internal_la_SOURCES = src/common.cc \
                                           $(SYSTEM_ALLOC_CC) \
                                           src/memfs_malloc.cc \
                                           src/central_freelist.cc \
-                                          src/llrb.cc \
+                                          src/tlsf.cc \
                                           src/page_heap.cc \
                                           src/sampler.cc \
                                           src/span.cc \
@@ -563,6 +563,14 @@ tcmalloc_minimal_large_heap_fragmentation_unittest_SOURCES = src/tests/large_hea
 tcmalloc_minimal_large_heap_fragmentation_unittest_CXXFLAGS = $(PTHREAD_CFLAGS) $(AM_CXXFLAGS) $(NO_BUILTIN_CXXFLAGS)
 tcmalloc_minimal_large_heap_fragmentation_unittest_LDFLAGS = $(PTHREAD_CFLAGS) $(TCMALLOC_FLAGS)
 tcmalloc_minimal_large_heap_fragmentation_unittest_LDADD = $(LIBTCMALLOC_MINIMAL) $(PTHREAD_LIBS)
+
+TESTS += tcmalloc_tlsf_unittest
+tcmalloc_tlsf_unittest_SOURCES = src/tests/tlsf_unittest.cc \
+				 src/tlsf.cc \
+				 src/tests/fake_common.cc
+tcmalloc_tlsf_unittest_CXXFLAGS = $(PTHREAD_CFLAGS) $(AM_CXXFLAGS) $(NO_BUILTIN_CXXFLAGS)
+tcmalloc_tlsf_unittest_LDFLAGS = $(PTHREAD_CFLAGS) $(TCMALLOC_FLAGS)
+tcmalloc_tlsf_unittest_LDADD = $(PTHREAD_LIBS)
 
 # This tests it works to LD_PRELOAD libtcmalloc (tests maybe_threads.cc)
 # In theory this should work under mingw, but mingw has trouble running
