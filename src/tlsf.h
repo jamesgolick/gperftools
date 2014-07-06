@@ -56,6 +56,7 @@ class TLSF {
    void Remove(Span* span);
    Span* GetBestFit(size_t pages);
    bool Includes(Span* span);
+   Length RoundPages(size_t pages);
 
   private:
    static const size_t kFlLength = (sizeof(long) * 8) - (kPageShift - 1);

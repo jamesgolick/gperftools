@@ -126,6 +126,11 @@ Span* TLSF::GetBestFit(size_t pages) {
   }
 }
 
+Length TLSF::RoundPages(size_t pages) {
+  size_t rounded_size = roundsize(pages << kPageShift);
+  return tcmalloc::pages(rounded_size);
+}
+
 size_t TLSF::roundsize(size_t size) {
   size_t fli = flindex(size);
   size_t sli = slindex(fli, size);
@@ -133,18 +138,20 @@ size_t TLSF::roundsize(size_t size) {
   // If this size is in the last second level class
   // then round up to the nearest first level size
   if (sli == kSlLength - 1) {
-    return 2 << (fli + 1 + kPageShift);
+    return 1 << (fli + 1 + kPageShift);
   } else {
     // Otherwise, we just need to round up to the next biggest
     // second level size class
-    size_t levels = (2 << (fli + kPageShift));
-    size_t levelw = (2 << (fli + kPageShift + 1)) - levels;
-    return levels + ((levelw / kSlLength) * (sli + 1));
+    size_t levels = (1 << (fli + kPageShift));
+    return levels + ((levels / kSlLength) * (sli + 1));
   }
 }
 
 inline Span* TLSF::try_fli(size_t fli, size_t size) {
-  size_t sli = log2(_sl_bitmaps[fli] & (~0 << slindex(fli, size)));
+  size_t intersection = _sl_bitmaps[fli] & (~0 << slindex(fli, size));
+  if (!intersection) { return NULL; }
+
+  size_t sli = log2(intersection);
 
   tlsf_list_node_t* node = _blocks[fli][sli];
 
@@ -188,13 +195,12 @@ size_t TLSF::flindex(size_t size) {
 }
 
 size_t TLSF::slindex(size_t fli, size_t size) {
-  size_t levels = (2 << (fli + kPageShift));
+  size_t levels = ((size_t)1 << (fli + kPageShift));
 
   if (levels > size) {
     return 0;
   } else {
-    size_t levelw = (2 << (fli + kPageShift + 1)) - levels;
-    return (size - levels) / (levelw / kSlLength);
+    return (size - levels) / (levels / kSlLength);
   }
 }
 

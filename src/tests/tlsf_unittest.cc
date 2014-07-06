@@ -55,6 +55,15 @@ int main (int argc, char** argv) {
   tcmalloc::TLSF tlsf;
 
   tlsf.Init(&alloc);
+
+  span.length = 129;
+  tlsf.Insert(&span);
+
+  CHECK_EQ(tlsf.GetBestFit(130), NULL);
+
+  tlsf.Remove(&span);
+
+  span.length = 10;
   tlsf.Insert(&span);
   tlsf.Insert(&span2);
 

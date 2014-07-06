@@ -574,6 +574,7 @@ static void RecordGrowth(size_t growth) {
 }
 
 bool PageHeap::GrowHeap(Length n) {
+  n = large_tlsf_.RoundPages(n);
   ASSERT(kMaxPages >= kMinSystemAlloc);
   if (n > kMaxValidPages) return false;
   Length ask = (n>kMinSystemAlloc) ? n : static_cast<Length>(kMinSystemAlloc);
