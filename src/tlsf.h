@@ -77,6 +77,8 @@ class TLSF {
    size_t log2(size_t size);
    size_t flindex(size_t size);
    size_t slindex(size_t fli, size_t size);
+
+   size_t roundsize(size_t size);
 };
 
 }  // namespace tcmalloc

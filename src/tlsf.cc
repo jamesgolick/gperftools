@@ -105,16 +105,41 @@ void TLSF::Remove(Span* span) {
 }
 
 Span* TLSF::GetBestFit(size_t pages) {
-  size_t size = pages << kPageShift;
+  size_t size = roundsize(pages << kPageShift);
 
-  size_t fli = log2(_fl_bitmap & (~0 << flindex(size)));
+  size_t basefli = flindex(size);
+  size_t fli	 = log2(_fl_bitmap & (~0 << basefli));
+
+  if (fli < basefli) {
+    return NULL;
+  }
 
   Span *rv = try_fli(fli, size);
 
   if (rv) {
+    ASSERT(rv->length >= pages);
     return rv;
   } else {
-    return try_fli(fli + 1, size);
+    rv = try_fli(fli + 1, size);
+    if (rv) { ASSERT(rv->length >= pages); }
+    return rv;
+  }
+}
+
+size_t TLSF::roundsize(size_t size) {
+  size_t fli = flindex(size);
+  size_t sli = slindex(fli, size);
+
+  // If this size is in the last second level class
+  // then round up to the nearest first level size
+  if (sli == kSlLength - 1) {
+    return 2 << (fli + 1 + kPageShift);
+  } else {
+    // Otherwise, we just need to round up to the next biggest
+    // second level size class
+    size_t levels = (2 << (fli + kPageShift));
+    size_t levelw = (2 << (fli + kPageShift + 1)) - levels;
+    return levels + ((levelw / kSlLength) * (sli + 1));
   }
 }
 
