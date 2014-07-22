@@ -64,7 +64,6 @@ namespace tcmalloc {
 PageHeap::PageHeap()
     : pagemap_(MetaDataAlloc),
       pagemap_cache_(0),
-      large_lists_size_(0),
       // Start scavenging at kMaxPages list
       scavenge_counter_(0),
       release_index_(kMaxPages),
@@ -379,7 +378,6 @@ void PageHeap::PrependToFreeList(Span* span) {
     list = &free_[span->length];
   } else {
     list = &large_;
-    large_lists_size_++;
     large_llrb_.Insert(span);
   }
   
@@ -402,7 +400,6 @@ void PageHeap::RemoveFromFreeList(Span* span) {
 
   if (span->length >= kMaxPages) {
     large_llrb_.Remove(span);
-    large_lists_size_--;
   }
 
   DLL_Remove(span);
