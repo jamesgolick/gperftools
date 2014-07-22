@@ -310,9 +310,6 @@ class PERFTOOLS_DLL_DECL PageHeap {
   int release_index_;
 
   bool aggressive_decommit_;
-  // Initially populate the large llrb. Used every time
-  // we cross the kLargeLLRBThreshold.
-  void InitializeLargeLLRB();
 };
 
 }  // namespace tcmalloc
